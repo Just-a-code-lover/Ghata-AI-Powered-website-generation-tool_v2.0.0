@@ -4,7 +4,7 @@ import io
 import json
 import zipfile
 from dotenv import load_dotenv
-from app_utilities import clear_session_state
+from app_utilities import clear_session_state, initialize_session_state
 
 
 # Import from local modules
@@ -50,6 +50,7 @@ def get_conversation_history_for_llm():
         history.append({"role": message["role"], "content": message["content"]})
     
     return history
+
 def render_version_history():
     """Render the version history with proper error handling and reset button"""
     st.markdown("<h3>Version History</h3>", unsafe_allow_html=True)
@@ -111,7 +112,7 @@ def render_version_history():
 
 
 def render_chat_interface():
-    """Display chat history and the user input form."""
+    """Display chat history without the input form."""
     with st.container():
         for message in st.session_state.messages:
             role = "user" if message["role"] == "user" else "assistant"
@@ -120,146 +121,94 @@ def render_chat_interface():
                 content = clean_response_for_display(content)
             st.markdown(format_chat_message(content, role), unsafe_allow_html=True)
 
-    # Create a unique key by appending a string to the form key
-    form_key = "website_input_form_1"  # Or dynamically generate it
-
-    with st.form(form_key, clear_on_submit=True):
-        user_input = st.text_area(
-            "What would you like to create or modify?",
-            height=100,
-            placeholder="e.g., 'Create a landing page for a bakery with contact form'"
-        )
-        submit_button = st.form_submit_button("Generate Website")
-
-        if submit_button and user_input:
-            st.session_state.user_input = user_input
-            st.session_state.submitted = True
-
-
-        if submit_button and user_input:
-            st.session_state.user_input = user_input
-            st.session_state.submitted = True
-
 
 def render_website_preview():
-    """Render the website preview with improved styling"""
+    """Render the website preview with scrollable sections for HTML, CSS, JS"""
     st.markdown("<h3>Website Preview</h3>", unsafe_allow_html=True)
-    
-    # Tabs for code and preview
-    tab1, tab2, tab3, tab4 = st.tabs(["Preview", "HTML", "CSS", "JavaScript"])
-    
-    # Get the current version
+
     current_version = None
     if st.session_state.website_versions and st.session_state.current_version_index >= 0:
         current_version = st.session_state.website_versions[st.session_state.current_version_index]
-    
+
+    if not current_version:
+        st.info("Describe your website to see a preview here.")
+        return
+
+    # Independent scrollable sections
+    tab1, tab2, tab3, tab4 = st.tabs(["Preview", "HTML", "CSS", "JavaScript"])
+
     with tab1:
-        if current_version:
-            st.markdown('<div class="preview-container">', unsafe_allow_html=True)
-            # Combine HTML, CSS, JS for preview
-            combined_code = f"""
-            <!DOCTYPE html>
-            <html>
-            <head>
-                <style>{current_version.css}</style>
-            </head>
-            <body>
-                {current_version.html}
-                <script>{current_version.js}</script>
-            </body>
-            </html>
-            """
-            st.components.v1.html(combined_code, height=500, scrolling=True)
-            st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.info("Describe your website to see a preview here.")
-    
+        combined_code = f"""
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <style>{current_version.css}</style>
+        </head>
+        <body>
+            {current_version.html}
+            <script>{current_version.js}</script>
+        </body>
+        </html>
+        """
+        st.components.v1.html(combined_code, height=500, scrolling=True)
+
     with tab2:
-        if current_version:
-            st.markdown('<div class="code-block">', unsafe_allow_html=True)
-            st.code(current_version.html, language="html")
-            st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.info("No HTML code available yet.")
-    
+        st.markdown('<div style="max-height: 400px; overflow-y: auto;">', unsafe_allow_html=True)
+        st.code(current_version.html, language="html")
+        st.markdown('</div>', unsafe_allow_html=True)
+
     with tab3:
-        if current_version:
-            st.markdown('<div class="code-block">', unsafe_allow_html=True)
-            st.code(current_version.css, language="css")
-            st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.info("No CSS code available yet.")
-    
+        st.markdown('<div style="max-height: 400px; overflow-y: auto;">', unsafe_allow_html=True)
+        st.code(current_version.css, language="css")
+        st.markdown('</div>', unsafe_allow_html=True)
+
     with tab4:
-        if current_version:
-            st.markdown('<div class="code-block">', unsafe_allow_html=True)
-            st.code(current_version.js, language="javascript")
-            st.markdown('</div>', unsafe_allow_html=True)
-        else:
-            st.info("No JavaScript code available yet.")
-    
-    # Download options
-    if current_version:
-        st.markdown("<div style='margin-top: 15px;'>", unsafe_allow_html=True)
-        download_cols = st.columns(2)
-        
-        with download_cols[0]:
-            download_zip = create_download_zip(current_version)
+        st.markdown('<div style="max-height: 400px; overflow-y: auto;">', unsafe_allow_html=True)
+        st.code(current_version.js, language="javascript")
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    # Move download buttons OUTSIDE tabs to avoid nesting issues
+    st.markdown("### Download Options")
+    col1, col2 = st.columns(2)
+    with col1:
+        zip_data = create_download_zip(current_version)
+        st.download_button(
+            label="Download Current Version",
+            data=zip_data,
+            file_name=f"website_v{st.session_state.current_version_index+1}_{current_version.id}.zip",
+            mime="application/zip",
+            key="download_current"
+        )
+    if len(st.session_state.website_versions) > 1:
+        with col2:
+            all_versions_zip = io.BytesIO()
+            with zipfile.ZipFile(all_versions_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
+                for i, version in enumerate(st.session_state.website_versions):
+                    folder = f"version_{i+1}_{version.id}"
+                    zipf.writestr(f"{folder}/index.html", f"""<!DOCTYPE html>
+                    <html><head><meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Generated Website - Version {i+1}</title>
+                    <link rel="stylesheet" href="styles.css">
+                    </head><body>{version.html}<script src="script.js"></script></body></html>""")
+                    zipf.writestr(f"{folder}/styles.css", version.css)
+                    zipf.writestr(f"{folder}/script.js", version.js)
+                    zipf.writestr(f"{folder}/metadata.json", json.dumps({
+                        "version": i+1,
+                        "id": version.id,
+                        "description": version.description,
+                        "timestamp": version.timestamp
+                    }, indent=2))
+            all_versions_zip.seek(0)
             st.download_button(
-                label="Download Current Version",
-                data=download_zip,
-                file_name=f"website_v{st.session_state.current_version_index+1}_{current_version.id}.zip",
+                label="Download All Versions",
+                data=all_versions_zip.getvalue(),
+                file_name="all_website_versions.zip",
                 mime="application/zip",
-                key="download_current",
-                help="Download the current website version as a ZIP file"
+                key="download_all"
             )
-        
-        # Add a button to download all versions
-        if len(st.session_state.website_versions) > 1:
-            with download_cols[1]:
-                # Create a zip with all versions
-                all_versions_zip = io.BytesIO()
-                with zipfile.ZipFile(all_versions_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
-                    for i, version in enumerate(st.session_state.website_versions):
-                        folder_name = f"version_{i+1}_{version.id}"
-                        zipf.writestr(f"{folder_name}/index.html", f"""
-                        <!DOCTYPE html>
-                        <html>
-                        <head>
-                            <meta charset="UTF-8">
-                            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                            <title>Generated Website - Version {i+1}</title>
-                            <link rel="stylesheet" href="styles.css">
-                        </head>
-                        <body>
-                            {version.html}
-                            <script src="script.js"></script>
-                        </body>
-                        </html>
-                        """)
-                        
-                        zipf.writestr(f"{folder_name}/styles.css", version.css)
-                        zipf.writestr(f"{folder_name}/script.js", version.js)
-                        
-                        # Add metadata file
-                        metadata = {
-                            "version": i+1,
-                            "id": version.id,
-                            "description": version.description,
-                            "timestamp": version.timestamp
-                        }
-                        zipf.writestr(f"{folder_name}/metadata.json", json.dumps(metadata, indent=2))
-                
-                all_versions_zip.seek(0)
-                st.download_button(
-                    label="Download All Versions",
-                    data=all_versions_zip.getvalue(),
-                    file_name="all_website_versions.zip",
-                    mime="application/zip",
-                    key="download_all",
-                    help="Download all website versions as a ZIP file"
-                )
-        st.markdown("</div>", unsafe_allow_html=True)
 
 def main():
     st.set_page_config(
@@ -270,43 +219,62 @@ def main():
     )
 
     # Init session
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    if "website_versions" not in st.session_state:
-        st.session_state.website_versions = []
-    if "current_version_index" not in st.session_state:
-        st.session_state.current_version_index = -1
-    if "submitted" not in st.session_state:
-        st.session_state.submitted = False
-    if "show_history" not in st.session_state:
-        st.session_state.show_history = True
+    initialize_session_state()
 
     # UI basics
     load_custom_css()
     create_custom_header()
 
+    # Main layout structure
     main_cols = st.columns([1, 3])
+    
+    # Left column - Version history
     with main_cols[0]:
         render_version_history()
 
+    # Right column - Chat and preview
     with main_cols[1]:
         content_cols = st.columns([1, 1])
 
+        # Chat section
         with content_cols[0]:
             st.markdown("<h3>Chat with AI Designer</h3>", unsafe_allow_html=True)
             render_chat_interface()
 
+            # Reference version picker - MOVED UP before the form
+            use_reference = False
+            referenced_version = None
+            
+            # Input Form
+            with st.form("website_input_form", clear_on_submit=True):
+                user_input = st.text_area(
+                    "What would you like to create or modify?",
+                    height=100,
+                    placeholder="e.g., 'Create a landing page for a bakery with contact form'"
+                )
+                submit_button = st.form_submit_button("Generate Website")
+
+                if submit_button and user_input:
+                    st.session_state.user_input = user_input
+                    st.session_state.submitted = True
+                    st.session_state.use_reference = use_reference
+                    st.session_state.referenced_version = referenced_version
+                    st.rerun()
+
+        # Preview section
         with content_cols[1]:
             render_website_preview()
 
-    # Reference version picker (outside layout blocks)
-    use_reference = False
-    referenced_version = None
-    col1, col2 = st.columns(2)
-    with col1:
+    # Reference version picker
+    st.markdown("---")
+    reference_cols = st.columns([1, 3])
+    
+    with reference_cols[0]:
         use_reference = st.checkbox("Reference a previous version")
+    
+    referenced_version = None
     if use_reference and st.session_state.website_versions:
-        with col2:
+        with reference_cols[1]:
             version_options = {
                 f"V{i+1}: {v.description[:20]}... ({v.id})": i
                 for i, v in enumerate(st.session_state.website_versions)
@@ -318,21 +286,6 @@ def main():
             )
             referenced_version = version_options[selected_version]
 
-    # Prompt input form
-    with st.form("website_input_form", clear_on_submit=True):
-        user_input = st.text_area(
-            "What would you like to create or modify?",
-            height=100,
-            placeholder="e.g., 'Create a landing page for a bakery with contact form'"
-        )
-        submit_button = st.form_submit_button("Generate Website")
-
-        if submit_button and user_input:
-            st.session_state.user_input = user_input
-            st.session_state.submitted = True
-            st.session_state.use_reference = use_reference
-            st.session_state.referenced_version = referenced_version
-            st.rerun()
 
     # Submission handler
     if st.session_state.submitted:
