@@ -89,20 +89,21 @@ def render_version_history():
                     is_active = i == st.session_state.current_version_index
                     st.markdown(create_version_card(version, i, is_active), unsafe_allow_html=True)
 
-                    col1, col2 = st.columns(2)
-                    with col1:
-                        if st.button("Load", key=f"load_{version.id}"):
-                            st.session_state.current_version_index = i
-                            st.rerun()
-                    with col2:
-                        download_zip = create_download_zip(version)
-                        st.download_button(
-                            label="Download",
-                            data=download_zip,
-                            file_name=f"website_v{i+1}_{version.id}.zip",
-                            mime="application/zip",
-                            key=f"download_{version.id}"
-                        )
+                    # Avoid nesting columns by using buttons directly
+                    load_btn = st.button("Load", key=f"load_{version.id}")
+                    download_zip = create_download_zip(version)
+                    download_btn = st.download_button(
+                        label="Download",
+                        data=download_zip,
+                        file_name=f"website_v{i+1}_{version.id}.zip",
+                        mime="application/zip",
+                        key=f"download_{version.id}"
+                    )
+                    
+                    if load_btn:
+                        st.session_state.current_version_index = i
+                        st.rerun()
+                        
                     st.markdown("<hr style='margin: 10px 0; opacity: 0.3'>", unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"❌ Error rendering versions: {str(e)}")
@@ -114,12 +115,14 @@ def render_version_history():
 def render_chat_interface():
     """Display chat history without the input form."""
     with st.container():
+        st.markdown('<div class="scrollable-container" style="max-height: 400px; overflow-y: auto;">', unsafe_allow_html=True)
         for message in st.session_state.messages:
             role = "user" if message["role"] == "user" else "assistant"
             content = message["content"]
             if role == "assistant":
                 content = clean_response_for_display(content)
             st.markdown(format_chat_message(content, role), unsafe_allow_html=True)
+        st.markdown('</div>', unsafe_allow_html=True)
 
 
 def render_website_preview():
@@ -169,46 +172,70 @@ def render_website_preview():
         st.code(current_version.js, language="javascript")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Move download buttons OUTSIDE tabs to avoid nesting issues
+    # Download buttons section
     st.markdown("### Download Options")
-    col1, col2 = st.columns(2)
-    with col1:
-        zip_data = create_download_zip(current_version)
-        st.download_button(
-            label="Download Current Version",
-            data=zip_data,
-            file_name=f"website_v{st.session_state.current_version_index+1}_{current_version.id}.zip",
-            mime="application/zip",
-            key="download_current"
-        )
+    
+    # Use a container instead of columns to avoid nesting issues
+    download_container = st.container()
+    
+    # Place buttons side by side with custom CSS
+    download_container.markdown(
+        """
+        <style>
+        .download-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        .download-buttons > div {
+            flex: 1;
+        }
+        </style>
+        <div class="download-buttons">
+        """, 
+        unsafe_allow_html=True
+    )
+    
+    # First button (always shown)
+    download_current = st.download_button(
+        label="Download Current Version",
+        data=create_download_zip(current_version),
+        file_name=f"website_v{st.session_state.current_version_index+1}_{current_version.id}.zip",
+        mime="application/zip",
+        key="download_current"
+    )
+    
+    # Second button (shown conditionally)
     if len(st.session_state.website_versions) > 1:
-        with col2:
-            all_versions_zip = io.BytesIO()
-            with zipfile.ZipFile(all_versions_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
-                for i, version in enumerate(st.session_state.website_versions):
-                    folder = f"version_{i+1}_{version.id}"
-                    zipf.writestr(f"{folder}/index.html", f"""<!DOCTYPE html>
-                    <html><head><meta charset="UTF-8">
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <title>Generated Website - Version {i+1}</title>
-                    <link rel="stylesheet" href="styles.css">
-                    </head><body>{version.html}<script src="script.js"></script></body></html>""")
-                    zipf.writestr(f"{folder}/styles.css", version.css)
-                    zipf.writestr(f"{folder}/script.js", version.js)
-                    zipf.writestr(f"{folder}/metadata.json", json.dumps({
-                        "version": i+1,
-                        "id": version.id,
-                        "description": version.description,
-                        "timestamp": version.timestamp
-                    }, indent=2))
-            all_versions_zip.seek(0)
-            st.download_button(
-                label="Download All Versions",
-                data=all_versions_zip.getvalue(),
-                file_name="all_website_versions.zip",
-                mime="application/zip",
-                key="download_all"
-            )
+        all_versions_zip = io.BytesIO()
+        with zipfile.ZipFile(all_versions_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
+            for i, version in enumerate(st.session_state.website_versions):
+                folder = f"version_{i+1}_{version.id}"
+                zipf.writestr(f"{folder}/index.html", f"""<!DOCTYPE html>
+                <html><head><meta charset="UTF-8">
+                <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                <title>Generated Website - Version {i+1}</title>
+                <link rel="stylesheet" href="styles.css">
+                </head><body>{version.html}<script src="script.js"></script></body></html>""")
+                zipf.writestr(f"{folder}/styles.css", version.css)
+                zipf.writestr(f"{folder}/script.js", version.js)
+                zipf.writestr(f"{folder}/metadata.json", json.dumps({
+                    "version": i+1,
+                    "id": version.id,
+                    "description": version.description,
+                    "timestamp": version.timestamp
+                }, indent=2))
+        all_versions_zip.seek(0)
+        
+        download_all = st.download_button(
+            label="Download All Versions",
+            data=all_versions_zip.getvalue(),
+            file_name="all_website_versions.zip",
+            mime="application/zip",
+            key="download_all"
+        )
+    
+    download_container.markdown("</div>", unsafe_allow_html=True)
+
 
 def main():
     st.set_page_config(
@@ -225,25 +252,21 @@ def main():
     load_custom_css()
     create_custom_header()
 
-    # Main layout structure
-    main_cols = st.columns([1, 3])
+    # Main layout structure - avoid nested columns
+    left_panel, right_panel = st.columns([1, 3])
     
     # Left column - Version history
-    with main_cols[0]:
+    with left_panel:
         render_version_history()
 
     # Right column - Chat and preview
-    with main_cols[1]:
-        content_cols = st.columns([1, 1])
-
-        # Chat section
-        with content_cols[0]:
-            st.markdown("<h3>Chat with AI Designer</h3>", unsafe_allow_html=True)
+    with right_panel:
+        # Use tabs instead of columns to avoid nesting issues
+        chat_tab, preview_tab = st.tabs(["Chat with AI Designer", "Website Preview"])
+        
+        with chat_tab:
+            # Chat interface
             render_chat_interface()
-
-            # Reference version picker - MOVED UP before the form
-            use_reference = False
-            referenced_version = None
             
             # Input Form
             with st.form("website_input_form", clear_on_submit=True):
@@ -252,6 +275,25 @@ def main():
                     height=100,
                     placeholder="e.g., 'Create a landing page for a bakery with contact form'"
                 )
+                
+                # Reference version checkbox
+                use_reference = st.checkbox("Reference a previous version")
+                
+                # Only show version selector if checkbox is checked and versions exist
+                referenced_version = None
+                if use_reference and st.session_state.website_versions:
+                    version_options = {
+                        f"V{i+1}: {v.description[:20]}... ({v.id})": i
+                        for i, v in enumerate(st.session_state.website_versions)
+                    }
+                    selected_version = st.selectbox(
+                        "Select version to reference:",
+                        options=list(version_options.keys()),
+                        index=0
+                    )
+                    referenced_version = version_options[selected_version]
+                
+                # Submit button
                 submit_button = st.form_submit_button("Generate Website")
 
                 if submit_button and user_input:
@@ -260,32 +302,10 @@ def main():
                     st.session_state.use_reference = use_reference
                     st.session_state.referenced_version = referenced_version
                     st.rerun()
-
-        # Preview section
-        with content_cols[1]:
+        
+        with preview_tab:
+            # Preview section
             render_website_preview()
-
-    # Reference version picker
-    st.markdown("---")
-    reference_cols = st.columns([1, 3])
-    
-    with reference_cols[0]:
-        use_reference = st.checkbox("Reference a previous version")
-    
-    referenced_version = None
-    if use_reference and st.session_state.website_versions:
-        with reference_cols[1]:
-            version_options = {
-                f"V{i+1}: {v.description[:20]}... ({v.id})": i
-                for i, v in enumerate(st.session_state.website_versions)
-            }
-            selected_version = st.selectbox(
-                "Select version to reference:",
-                options=list(version_options.keys()),
-                index=0
-            )
-            referenced_version = version_options[selected_version]
-
 
     # Submission handler
     if st.session_state.submitted:

@@ -61,6 +61,7 @@ def load_custom_css():
             border-radius: 10px;
             margin-bottom: 15px;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            word-wrap: break-word;
         }
         
         .chat-message.user {
@@ -78,6 +79,7 @@ def load_custom_css():
             max-height: 500px;
             overflow-y: auto;
             padding-right: 10px;
+            margin-bottom: 15px;
         }
         
         .scrollable-container::-webkit-scrollbar {
@@ -96,6 +98,12 @@ def load_custom_css():
         
         .scrollable-container::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
+        }
+        
+        /* Code container specific styling */
+        .stCodeBlock {
+            max-height: 400px;
+            overflow-y: auto !important;
         }
         
         /* Button styles */
@@ -142,24 +150,21 @@ def load_custom_css():
             color: #555;
         }
         
-        /* Download button styles */
-        .download-btn {
-            background-color: #4CAF50;
-            color: white;
-            padding: 10px 15px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            text-align: center;
-            display: inline-block;
-            font-size: 0.9rem;
+        /* Download buttons styles */
+        .download-buttons {
+            display: flex;
+            gap: 10px;
             margin-top: 10px;
-            width: 100%;
-            transition: background-color 0.3s;
         }
         
-        .download-btn:hover {
-            background-color: #45a049;
+        .download-buttons > div {
+            flex: 1;
+        }
+        
+        /* Ensure code blocks have proper scrolling */
+        pre {
+            white-space: pre;
+            overflow-x: auto;
         }
     </style>
     """, unsafe_allow_html=True)
