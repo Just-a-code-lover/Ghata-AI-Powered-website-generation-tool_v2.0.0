@@ -350,12 +350,36 @@ def main():
 
         with st.spinner("Generating website..."):
             history = get_conversation_history_for_llm()
-            # Pass image data to get_system_prompt
             system_prompt = get_system_prompt(image_data)
             response = generate_response(user_input, history, system_prompt)
             html_code, css_code, js_code = extract_code_from_response(response)
 
-            st.session_state.messages.append({"role": "assistant", "content": response})
+            # Create user guide message
+            guide_message = """
+🎉 **Website Generated Successfully!**
+
+📱 To see your website:
+1. Click the "Website Preview" tab above
+2. Use the preview panel to interact with your site
+3. Check the HTML, CSS, and JS tabs for the code
+
+💡 You can:
+- Continue chatting to refine the website
+- Use version history to track changes
+- Download your website using the buttons below the preview
+
+🔄 Want to make changes?
+- Simply describe what you'd like to modify
+- Reference previous versions if needed
+- Add images by using the image search feature
+"""
+            
+            # Add both LLM response and guide to chat
+            st.session_state.messages.append({
+                "role": "assistant", 
+                "content": f"{response}\n\n{guide_message}"
+            })
+
             if html_code or css_code or js_code:
                 base_html = base_css = base_js = ""
                 if st.session_state.current_version_index >= 0:
@@ -368,15 +392,12 @@ def main():
                     js=js_code or base_js,
                     description=user_input.split('\n')[0][:50]
                 )
-                # Add the new version
                 st.session_state.website_versions.append(new_version)
 
-                # Properly update the current_version_index
+                # Update current_version_index
                 if st.session_state.current_version_index == -1:
-                    # First version ever added, set to index 0
                     st.session_state.current_version_index = 0
                 else:
-                    # On subsequent adds, point to the latest version
                     st.session_state.current_version_index = len(st.session_state.website_versions) - 1
 
         st.session_state.submitted = False
