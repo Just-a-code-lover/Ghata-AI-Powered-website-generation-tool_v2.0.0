@@ -182,8 +182,6 @@ def initialize_session_state():
    html_code, css_code, js_code = extract_code_from_response(response)
    ```
 
-```mermaid graph TD A[Base System Prompt] --> B[Code Completeness Rules] A --> C[Image Integration Logic] A --> D[Stateless Architecture] B --> E[Full Code Return] B --> F[Feature Preservation] C --> G[Pexels Image Data] C --> H[Fallback Placeholders] D --> I[Version Context] D --> J[Conversation History] E & F & G & H & I & J --> K[Final Composite Prompt] K --> L[LLM/Nemotron] ```
-
 2. **Version Management** (`website_version.py`, Lines 4-15):
    ```python
    class WebsiteVersion:
@@ -194,39 +192,6 @@ def initialize_session_state():
            self.css = css
            self.js = js
    ```
-graph TD
-    A[User Input] --> B{Has Previous Version?}
-    B -->|Yes| C[Load Current Version]
-    B -->|No| D[Initialize New Version]
-    
-    C --> E[Current State]
-    D --> E
-    
-    E --> F[Generate New Version]
-    F --> G[Version Object Creation]
-    
-    G --> H[Add to Version History]
-    H --> I[Update Current Index]
-    
-    I --> J{Multiple Versions?}
-    J -->|Yes| K[Enable Version Navigation]
-    J -->|No| L[Single Version Mode]
-    
-    K & L --> M[State Management]
-    
-    M --> N[Save Version State]
-    N --> O[Load Version State]
-    
-    style A fill:#4b6cb7,color:white
-    style E fill:#182848,color:white
-    style M fill:#4CAF50,color:white
-
-    subgraph Version Object
-        G --> |Contains| V1[UUID]
-        G --> |Contains| V2[Timestamp]
-        G --> |Contains| V3[HTML/CSS/JS]
-        G --> |Contains| V4[Description]
-    end
 
 ### 2.2 AI Integration
 - **LLM Handler** (`llm_handler.py`, Lines 144-182):
