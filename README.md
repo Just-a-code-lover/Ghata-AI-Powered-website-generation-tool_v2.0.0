@@ -182,27 +182,7 @@ def initialize_session_state():
    html_code, css_code, js_code = extract_code_from_response(response)
    ```
 
-   graph TD
-    A[Base System Prompt] --> B[Code Completeness Rules]
-    A --> C[Image Integration Logic]
-    A --> D[Stateless Architecture]
-    
-    B --> E[Full Code Return]
-    B --> F[Feature Preservation]
-    
-    C --> G[Pexels Image Data]
-    C --> H[Fallback Placeholders]
-    
-    D --> I[Version Context]
-    D --> J[Conversation History]
-    
-    E & F & G & H & I & J --> K[Final Composite Prompt]
-    
-    K --> L[LLM/Nemotron]
-    
-    style A fill:#4b6cb7,color:white
-    style K fill:#182848,color:white
-    style L fill:#4CAF50,color:white
+<pre> ```mermaid graph TD A[Base System Prompt] --> B[Code Completeness Rules] A --> C[Image Integration Logic] A --> D[Stateless Architecture] B --> E[Full Code Return] B --> F[Feature Preservation] C --> G[Pexels Image Data] C --> H[Fallback Placeholders] D --> I[Version Context] D --> J[Conversation History] E & F & G & H & I & J --> K[Final Composite Prompt] K --> L[LLM/Nemotron] ``` </pre>
 
 2. **Version Management** (`website_version.py`, Lines 4-15):
    ```python
