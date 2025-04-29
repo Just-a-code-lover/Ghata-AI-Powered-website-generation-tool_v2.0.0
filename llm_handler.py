@@ -68,13 +68,13 @@ def get_system_prompt(image_data=None):
 7. **Response Format**  
    Always structure responses as:
    ```html
-   <!-- Complete HTML -->
+   <!-- Complete HTML Code -->
    ```
    ```css
-   /* Complete CSS */
+   /* Complete CSS Code*/
    ```
    ```javascript
-   // Complete JavaScript
+   // Complete JavaScript Code
    ```
 
 8. **Feature Integration**
@@ -136,7 +136,7 @@ def generate_response(prompt, conversation_history=None, custom_system_prompt=No
                 messages=messages,
                 temperature=0.75,
                 top_p=0.98,
-                max_tokens=4096,
+                max_tokens=16384,
                 frequency_penalty=0.1,
                 presence_penalty=0.1,
                 stream=True
