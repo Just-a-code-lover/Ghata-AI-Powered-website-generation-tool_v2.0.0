@@ -55,7 +55,6 @@ def load_custom_css():
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
-        /* Add to load_custom_css() */
         /* Model selection styling */
         .model-selection {
             margin: 15px 0;
@@ -100,45 +99,67 @@ def load_custom_css():
             border-radius: 15px 15px 5px 15px;
         }
 
-        /* Scrollbar styles - Universal */
-        .scrollable-container, 
-        .stCodeBlock,
-        div[data-testid="stCodeBlock"],
-        .element-container div[data-testid="stCodeBlock"],
-        .chat-container {  # Add new class
-            max-height: 500px !important;
+        /* Fixed scrollable containers - Add !important to ensure priority */
+        .scrollable-container {
+            max-height: 400px !important;
             overflow-y: auto !important;
+            overflow-x: hidden !important;
             border: 1px solid rgba(49, 51, 63, 0.1);
             border-radius: 4px;
             padding: 10px;
             margin-bottom: 15px;
+            display: block !important;
+        }
+        
+        /* Ensure code containers have proper scroll */
+        .scrollable-code-container {
+            max-height: 400px !important;
+            overflow-y: auto !important;
+            overflow-x: auto !important;
+            display: block !important;
+        }
+        
+        /* Specific fix for Streamlit code blocks */
+        .stCodeBlock {
+            max-height: 400px !important;
+            overflow-y: auto !important;
+        }
+        
+        div[data-testid="stCodeBlock"] pre {
+            max-height: 380px !important;
+            overflow-y: auto !important;
         }
 
         /* Webkit scrollbar styling */
         .scrollable-container::-webkit-scrollbar,
+        .scrollable-code-container::-webkit-scrollbar,
         .stCodeBlock::-webkit-scrollbar,
-        div[data-testid="stCodeBlock"]::-webkit-scrollbar {
+        div[data-testid="stCodeBlock"] pre::-webkit-scrollbar {
             width: 8px;
+            height: 8px;
             background: transparent;
         }
 
         .scrollable-container::-webkit-scrollbar-track,
+        .scrollable-code-container::-webkit-scrollbar-track,
         .stCodeBlock::-webkit-scrollbar-track,
-        div[data-testid="stCodeBlock"]::-webkit-scrollbar-track {
+        div[data-testid="stCodeBlock"] pre::-webkit-scrollbar-track {
             background: #f1f1f1;
             border-radius: 10px;
         }
 
         .scrollable-container::-webkit-scrollbar-thumb,
+        .scrollable-code-container::-webkit-scrollbar-thumb,
         .stCodeBlock::-webkit-scrollbar-thumb,
-        div[data-testid="stCodeBlock"]::-webkit-scrollbar-thumb {
+        div[data-testid="stCodeBlock"] pre::-webkit-scrollbar-thumb {
             background: #c1c1c1;
             border-radius: 10px;
         }
 
         .scrollable-container::-webkit-scrollbar-thumb:hover,
+        .scrollable-code-container::-webkit-scrollbar-thumb:hover,
         .stCodeBlock::-webkit-scrollbar-thumb:hover,
-        div[data-testid="stCodeBlock"]::-webkit-scrollbar-thumb:hover {
+        div[data-testid="stCodeBlock"] pre::-webkit-scrollbar-thumb:hover {
             background: #a8a8a8;
         }
 
