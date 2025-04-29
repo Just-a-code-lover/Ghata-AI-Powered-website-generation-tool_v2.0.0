@@ -20,6 +20,7 @@ def get_system_prompt(image_data=None):
    - ALWAYS return the COMPLETE, FULL website code
    - Never return partial updates or code snippets
    - Include ALL HTML, CSS, and JavaScript in every response
+   - Only give one HTML(index.html),CSS(style.css) and JS(script.js) in every response
    - Maintain all existing features when making changes
    Example:
      User: "Add a contact form"
@@ -101,75 +102,122 @@ Remember: NEVER return partial code. ALWAYS return the COMPLETE website code wit
     
     return base_prompt
 
-def generate_response(prompt, conversation_history=None, custom_system_prompt=None):
-    """Generate a response using the LLM.
-    
-    Args:
-        prompt (str): The user's input prompt
-        conversation_history (list, optional): Previous conversation messages
-        custom_system_prompt (str, optional): Custom system prompt to override default
-    """
+def generate_response(prompt, conversation_history=None, custom_system_prompt=None, model_choice="Better"):
+    """Generate a response using the selected LLM with timeout handling."""
     try:
         client = OpenAI(
             base_url="https://integrate.api.nvidia.com/v1",
             api_key=os.environ.get("NVIDIA_API_KEY")
         )
         
-        # Use custom system prompt if provided, otherwise get default
-        system_prompt = custom_system_prompt if custom_system_prompt else get_system_prompt()
+        # Model configurations
+        model_configs = {
+            "Good": {
+                "model": "nvidia/llama-3.3-nemotron-super-49b-v1",
+                "temperature": 0.6,
+                "top_p": 0.95,
+                "max_tokens": 16384,
+            },
+            "Better": {
+                "model": "nvidia/llama-3.1-nemotron-ultra-253b-v1",
+                "temperature": 0.6,
+                "top_p": 0.95,
+                "max_tokens": 16384,
+            },
+            "Best": {
+                "model": "deepseek-ai/deepseek-r1",
+                "temperature": 0.6,
+                "top_p": 0.7,
+                "max_tokens": 4096,
+            }
+        }
         
-        messages = [
-            {"role": "system", "content": system_prompt},
-        ]
+        # Select model config based on choice
+        model_type = model_choice.split(" ")[0]  # Extract "Good", "Better", or "Best"
+        config = model_configs[model_type]
+        
+        system_prompt = custom_system_prompt if custom_system_prompt else get_system_prompt()
+        messages = [{"role": "system", "content": system_prompt}]
         
         if conversation_history:
             messages.extend(conversation_history)
-            
         messages.append({"role": "user", "content": prompt})
         
         response_text = ""
         response_placeholder = st.empty()
         
-        with st.spinner("Generating website..."):
+        try:
+            with st.spinner(f"Generating website using {model_type} model..."):
+                completion = client.chat.completions.create(
+                    model=config["model"],
+                    messages=messages,
+                    temperature=config["temperature"],
+                    top_p=config["top_p"],
+                    max_tokens=config["max_tokens"],
+                    frequency_penalty=0.2,
+                    presence_penalty=0.2,
+                    stream=True
+                )
+                
+                for chunk in completion:
+                    if chunk.choices[0].delta.content is not None:
+                        response_text += chunk.choices[0].delta.content
+                        
+        except Exception as api_error:
+            st.error(f"Error with {model_type} model. Trying fallback model...")
+            # Fallback to Good model if any error occurs
+            fallback_config = model_configs["Good"]
             completion = client.chat.completions.create(
-                model="nvidia/llama-3.1-nemotron-ultra-253b-v1",
+                model=fallback_config["model"],
                 messages=messages,
-                temperature=0.75,
-                top_p=0.98,
-                max_tokens=16384,
-                frequency_penalty=0.1,
-                presence_penalty=0.1,
+                temperature=fallback_config["temperature"],
+                top_p=fallback_config["top_p"],
+                max_tokens=fallback_config["max_tokens"],
                 stream=True
             )
             
             for chunk in completion:
                 if chunk.choices[0].delta.content is not None:
                     response_text += chunk.choices[0].delta.content
-                    #response_placeholder.markdown(clean_response_for_display(response_text))
-                    
+        
         response_placeholder.empty()
         return response_text
         
     except Exception as e:
-        st.error(f"Error generating response: {str(e)}")
-        return "Error: Unable to connect to the API."
+        st.error(f"Error connecting to API. Please check your API key and try again.")
+        st.error(f"Detailed error: {str(e)}")
+        return None
     
 def extract_code_from_response(response):
+    """Extract HTML, CSS, and JS code blocks from the LLM response."""
     html_code = ""
     css_code = ""
     js_code = ""
 
+    # Extract HTML
     html_matches = re.findall(r"```html\s*([\s\S]*?)\s*```", response)
     if html_matches:
         html_code = html_matches[0].strip()
 
+    # Extract CSS
     css_matches = re.findall(r"```css\s*([\s\S]*?)\s*```", response)
     if css_matches:
         css_code = css_matches[0].strip()
 
+    # Extract JavaScript
     js_matches = re.findall(r"```(?:javascript|js)\s*([\s\S]*?)\s*```", response)
     if js_matches:
         js_code = js_matches[0].strip()
+
+    # Handle inline CSS/JS in HTML (for models like DeepSeek)
+    if not css_code and not js_code:
+        inline_css = re.findall(r"<style>([\s\S]*?)</style>", html_code, re.IGNORECASE)
+        inline_js = re.findall(r"<script>([\s\S]*?)</script>", html_code, re.IGNORECASE)
+
+        if inline_css:
+            css_code = inline_css[0].strip()
+        if inline_js:
+            js_code = inline_js[0].strip()
 
     return html_code, css_code, js_code
 
