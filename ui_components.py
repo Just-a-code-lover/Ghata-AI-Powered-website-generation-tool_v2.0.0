@@ -55,6 +55,32 @@ def load_custom_css():
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
+        /* Add to load_custom_css() */
+        /* Model selection styling */
+        .model-selection {
+            margin: 15px 0;
+            padding: 15px;
+            border-radius: 8px;
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+
+        /* Radio button container */
+        .st-emotion-cache-1vbkxwb {
+            margin: 10px 0;
+        }
+
+        /* Selected radio button */
+        .st-emotion-cache-1vbkxwb input:checked + label {
+            font-weight: 600;
+            color: #4b6cb7;
+        }
+
+        /* Radio button hover */
+        .st-emotion-cache-1vbkxwb label:hover {
+            background-color: #eef2ff;
+        }
+        
         /* Chat interface styles */
         .chat-message {
             padding: 15px;
@@ -78,7 +104,8 @@ def load_custom_css():
         .scrollable-container, 
         .stCodeBlock,
         div[data-testid="stCodeBlock"],
-        .element-container div[data-testid="stCodeBlock"] {
+        .element-container div[data-testid="stCodeBlock"],
+        .chat-container {  # Add new class
             max-height: 500px !important;
             overflow-y: auto !important;
             border: 1px solid rgba(49, 51, 63, 0.1);
@@ -187,7 +214,7 @@ def create_custom_header():
     """Create a custom header with title and description"""
     st.markdown("""
     <div class="custom-header">
-        <h1>🌐 AI Website Generator</h1>
+        <h1>🌐 GHATA-AI Website Generator</h1>
         <p>Describe your website idea and watch it come to life instantly</p>
     </div>
     """, unsafe_allow_html=True)
