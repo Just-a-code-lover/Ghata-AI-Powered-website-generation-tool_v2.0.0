@@ -77,19 +77,22 @@ def render_version_history():
 
     # Render version history if available
     if st.session_state.website_versions:
-        with st.container():
-            st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
-            try:
-                for i, version in enumerate(st.session_state.website_versions):
-                    if not isinstance(version, WebsiteVersion):
-                        st.warning(f"Skipping corrupted version at index {i}")
-                        continue
+        # Important: Using HTML instead of container for better scroll control
+        st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
+        try:
+            for i, version in enumerate(st.session_state.website_versions):
+                if not isinstance(version, WebsiteVersion):
+                    st.warning(f"Skipping corrupted version at index {i}")
+                    continue
 
-                    is_active = i == st.session_state.current_version_index
-                    st.markdown(create_version_card(version, i, is_active), unsafe_allow_html=True)
+                is_active = i == st.session_state.current_version_index
+                st.markdown(create_version_card(version, i, is_active), unsafe_allow_html=True)
 
-                    # Load and download buttons
+                # Avoid nested columns - use side-by-side buttons with HTML/CSS instead
+                col1, col2 = st.columns(2)
+                with col1:
                     load_btn = st.button("Load", key=f"load_{version.id}")
+                with col2:
                     download_zip = create_download_zip(version)
                     st.download_button(
                         label="Download",
@@ -99,29 +102,28 @@ def render_version_history():
                         key=f"download_{version.id}"
                     )
 
-                    if load_btn:
-                        st.session_state.current_version_index = i
-                        st.rerun()
+                if load_btn:
+                    st.session_state.current_version_index = i
+                    st.rerun()
 
-                    st.markdown("<hr style='margin: 10px 0; opacity: 0.3'>", unsafe_allow_html=True)
-            except Exception as e:
-                st.error(f"❌ Error rendering versions: {str(e)}")
-            st.markdown('</div>', unsafe_allow_html=True)
+                st.markdown("<hr style='margin: 10px 0; opacity: 0.3'>", unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"❌ Error rendering versions: {str(e)}")
+        st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.info("No versions available yet. Start by describing your website!")
 
 def render_chat_interface():
-    """Display chat history without the input form."""
-    with st.container():
-        st.markdown('<div class="scrollable-container" style="max-height: 400px; overflow-y: auto;">', unsafe_allow_html=True)
-        for message in st.session_state.messages:
-            role = "user" if message["role"] == "user" else "assistant"
-            content = message["content"]
-            if role == "assistant":
-                content = clean_response_for_display(content)
-            st.markdown(format_chat_message(content, role), unsafe_allow_html=True)
-        st.markdown('</div>', unsafe_allow_html=True)
-
+    """Display chat history with proper scrolling."""
+    # Important: Use CSS class to force vertical scrolling
+    st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
+    for message in st.session_state.messages:
+        role = "user" if message["role"] == "user" else "assistant"
+        content = message["content"]
+        if role == "assistant":
+            content = clean_response_for_display(content)
+        st.markdown(format_chat_message(content, role), unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 def render_website_preview():
     """Render the website preview with scrollable sections for HTML, CSS, JS"""
@@ -156,6 +158,7 @@ def render_website_preview():
         st.components.v1.html(combined_code, height=500, scrolling=True)
 
     with tab2:
+        # Use scrollable-code-container for proper scrolling
         st.markdown('<div class="scrollable-code-container">', unsafe_allow_html=True)
         st.code(current_version.html, language="html")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -170,69 +173,52 @@ def render_website_preview():
         st.code(current_version.js, language="javascript")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Download buttons section
+    # Simplified download section - avoid nesting issues
     st.markdown("### Download Options")
     
-    # Use a container instead of columns to avoid nesting issues
-    download_container = st.container()
+    # Create simple buttons without nesting columns
+    col1, col2 = st.columns(2)
     
-    # Place buttons side by side with custom CSS
-    download_container.markdown(
-        """
-        <style>
-        .download-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .download-buttons > div {
-            flex: 1;
-        }
-        </style>
-        <div class="download-buttons">
-        """, 
-        unsafe_allow_html=True
-    )
-    
-    # First button (always shown)
-    download_current = st.download_button(
-        label="Download Current Version",
-        data=create_download_zip(current_version),
-        file_name=f"website_v{st.session_state.current_version_index+1}_{current_version.id}.zip",
-        mime="application/zip",
-        key="download_current"
-    )
+    with col1:
+        st.download_button(
+            label="Download Current Version",
+            data=create_download_zip(current_version),
+            file_name=f"website_v{st.session_state.current_version_index+1}_{current_version.id}.zip",
+            mime="application/zip",
+            key="download_current"
+        )
     
     # Second button (shown conditionally)
     if len(st.session_state.website_versions) > 1:
-        all_versions_zip = io.BytesIO()
-        with zipfile.ZipFile(all_versions_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
-            for i, version in enumerate(st.session_state.website_versions):
-                folder = f"version_{i+1}_{version.id}"
-                zipf.writestr(f"{folder}/index.html", f"""<!DOCTYPE html>
-                <html><head><meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>Generated Website - Version {i+1}</title>
-                <link rel="stylesheet" href="styles.css">
-                </head><body>{version.html}<script src="script.js"></script></body></html>""")
-                zipf.writestr(f"{folder}/styles.css", version.css)
-                zipf.writestr(f"{folder}/script.js", version.js)
-                zipf.writestr(f"{folder}/metadata.json", json.dumps({
-                    "version": i+1,
-                    "id": version.id,
-                    "description": version.description,
-                    "timestamp": version.timestamp
-                }, indent=2))
-        all_versions_zip.seek(0)
-        
-        download_all = st.download_button(
-            label="Download All Versions",
-            data=all_versions_zip.getvalue(),
-            file_name="all_website_versions.zip",
-            mime="application/zip",
-            key="download_all"
-        )
-    
-    download_container.markdown("</div>", unsafe_allow_html=True)
+        with col2:
+            all_versions_zip = io.BytesIO()
+            with zipfile.ZipFile(all_versions_zip, "w", zipfile.ZIP_DEFLATED) as zipf:
+                for i, version in enumerate(st.session_state.website_versions):
+                    folder = f"version_{i+1}_{version.id}"
+                    zipf.writestr(f"{folder}/index.html", f"""<!DOCTYPE html>
+                    <html><head><meta charset="UTF-8">
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+                    <title>Generated Website - Version {i+1}</title>
+                    <link rel="stylesheet" href="styles.css">
+                    </head><body>{version.html}<script src="script.js"></script></body></html>""")
+                    zipf.writestr(f"{folder}/styles.css", version.css)
+                    zipf.writestr(f"{folder}/script.js", version.js)
+                    zipf.writestr(f"{folder}/metadata.json", json.dumps({
+                        "version": i+1,
+                        "id": version.id,
+                        "description": version.description,
+                        "timestamp": version.timestamp
+                    }, indent=2))
+            all_versions_zip.seek(0)
+            
+            st.download_button(
+                label="Download All Versions",
+                data=all_versions_zip.getvalue(),
+                file_name="all_website_versions.zip",
+                mime="application/zip",
+                key="download_all"
+            )
+            #download_container.markdown("</div>", unsafe_allow_html=True)
 
 
 def main():
