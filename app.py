@@ -53,31 +53,29 @@ def get_conversation_history_for_llm():
     return history
 
 def render_version_history():
-    """Render the version history with proper error handling and reset button"""
+    """Render the version history with proper error handling and reset button."""
     st.markdown("<h3>Version History</h3>", unsafe_allow_html=True)
 
-    # Safety checks
-    if not isinstance(st.session_state.website_versions, list):
-        st.error("⚠️ Internal error: version history is not a list.")
-        return
+    # Initialize the toggle state in session state if not already set
+    if "show_history" not in st.session_state:
+        st.session_state.show_history = True
 
-    toggle_key = "hide_history" if st.session_state.show_history else "show_history"
+    # Toggle button to show/hide version history
     toggle_text = "Hide Version History" if st.session_state.show_history else "Show Version History"
+    if st.button(toggle_text):
+        # Flip the state of show_history
+        st.session_state.show_history = not st.session_state.show_history
 
-    show_history_toggle = st.session_state.get("show_history", True)  # Default to True
-    if st.button(toggle_text, key=toggle_key):
-        show_history_toggle = not show_history_toggle
-        st.session_state.show_history = show_history_toggle
-        st.rerun()
-
-    # 🔁 Reset app state button
+    # Reset app state button
     if st.button("🧹 Reset All Versions & Chat"):
         clear_session_state()
         st.rerun()
 
+    # If version history is hidden, return early
     if not st.session_state.show_history:
         return
 
+    # Render version history if available
     if st.session_state.website_versions:
         with st.container():
             st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
@@ -90,28 +88,27 @@ def render_version_history():
                     is_active = i == st.session_state.current_version_index
                     st.markdown(create_version_card(version, i, is_active), unsafe_allow_html=True)
 
-                    # Avoid nesting columns by using buttons directly
+                    # Load and download buttons
                     load_btn = st.button("Load", key=f"load_{version.id}")
                     download_zip = create_download_zip(version)
-                    download_btn = st.download_button(
+                    st.download_button(
                         label="Download",
                         data=download_zip,
                         file_name=f"website_v{i+1}_{version.id}.zip",
                         mime="application/zip",
                         key=f"download_{version.id}"
                     )
-                    
+
                     if load_btn:
                         st.session_state.current_version_index = i
                         st.rerun()
-                        
+
                     st.markdown("<hr style='margin: 10px 0; opacity: 0.3'>", unsafe_allow_html=True)
             except Exception as e:
                 st.error(f"❌ Error rendering versions: {str(e)}")
             st.markdown('</div>', unsafe_allow_html=True)
     else:
         st.info("No versions available yet. Start by describing your website!")
-
 
 def render_chat_interface():
     """Display chat history without the input form."""
@@ -241,7 +238,7 @@ def render_website_preview():
 def main():
     st.set_page_config(
         layout="wide", 
-        page_title="AI Website Generator", 
+        page_title="GHATA-AI Website Generator", 
         page_icon="🌐",
         initial_sidebar_state="collapsed"
     )
@@ -263,7 +260,7 @@ def main():
     # Right column - Chat and preview
     with right_panel:
         # Use tabs instead of columns to avoid nesting issues
-        chat_tab, preview_tab = st.tabs(["Chat with AI Designer", "Website Preview"])
+        chat_tab, preview_tab = st.tabs(["Chat with GHATA-AI", "Website Preview"])
         
         with chat_tab:
             # Chat interface
@@ -292,8 +289,24 @@ def main():
                         max_value=10,
                         value=5,
                         key="num_images_input"
+                    )             
+        
+                with st.expander("🚀 Advanced: Choose AI Model"):
+                    model_info = {
+                        "Good (Fastest)  ": "⚡ Fastest response, good for simple websites",
+                        "Better (Default)": "🎯 Balanced speed and quality, recommended for most cases",
+                        "Best (Slowest)  ": "✨ Highest quality, best for complex requirements"
+                    }
+                    
+                    model_choice = st.radio(
+                        "Select AI Model",
+                        options=list(model_info.keys()),
+                        index=1,
+                        key="model_selector"
                     )
-                
+                    
+                    st.info(model_info[model_choice])
+
                 # Reference version checkbox
                 use_reference = st.checkbox("Reference a previous version")
                 
@@ -348,10 +361,10 @@ def main():
 
         st.session_state.messages.append({"role": "user", "content": user_input})
 
-        with st.spinner("Generating website..."):
+        with st.spinner("Something good is cooking..."):
             history = get_conversation_history_for_llm()
             system_prompt = get_system_prompt(image_data)
-            response = generate_response(user_input, history, system_prompt)
+            response = generate_response(user_input, history, system_prompt,model_choice)
             html_code, css_code, js_code = extract_code_from_response(response)
 
             # Create user guide message
