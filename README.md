@@ -1,6 +1,9 @@
 # Ghata-AI-Powered-website-generation-tool_v2.5.0 (Latest/Stable)
 My final year project and version 2 of https://github.com/Just-a-code-lover/Ghata-AI-Powered-website-generation-tool_v1.0.0
 
+## 🚀 Live Demo
+
+Try the app here: [https://ghata-ai.streamlit.app](https://ghata-ai.streamlit.app)
 
 # Ghata AI Website Generator - Technical Documentation
 
@@ -46,6 +49,11 @@ My final year project and version 2 of https://github.com/Just-a-code-lover/Ghat
   - `create_download_zip()` - Single version export
   - `create_all_versions_zip()` - Multiple version export
   - File structure organization
+
+  ## 🧠 Architecture Diagram
+
+![Architecture Diagram](https://github.com/Just-a-code-lover/Ghata-AI-Powered-website-generation-tool_v2.0.0/blob/Version_2.5.0/diagram-export-4-24-2025-1_16_22-AM.png?raw=true)
+
 
 ## Key Features & Implementation
 
