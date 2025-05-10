@@ -5,14 +5,41 @@ import json
 import zipfile
 from dotenv import load_dotenv
 from app_utilities import clear_session_state, initialize_session_state
-
-
-# Import from local modules
+import random
+import time
 from image_handler import get_images_from_pexels
 from website_version import WebsiteVersion
 from ui_components import load_custom_css, create_custom_header, format_chat_message, create_version_card
 from llm_handler import generate_response, extract_code_from_response, clean_response_for_display, get_system_prompt
 from file_handler import create_download_zip
+
+
+LOADING_GIFS = [
+    "https://media0.giphy.com/media/XfDiixCqdH7OrEBg5z/giphy.gif",
+    "https://media1.giphy.com/media/HjyfGGLxtaPbhrJWEg/giphy.gif",
+    "https://media0.giphy.com/media/xCej66aMjFBgqgWtQV/giphy.gif",
+    "https://media3.giphy.com/media/Uduu3VO7a3PJQlD5Bm/giphy.gif",
+    "https://media4.giphy.com/media/vHslzlGM9vKUgFNx0y/giphy.gif",
+    "https://media3.giphy.com/media/5tiNlHkA1WdUh3jRDW/giphy.gif",
+    "https://media4.giphy.com/media/axsN0Wx9AjwOJBvBLu/giphy.gif",
+    "https://media3.giphy.com/media/QHEt9Q8bZXp2ukQ10z/giphy.gif",
+    "https://media.giphy.com/media/Wgzw6BvYYDXYBKqoJE/giphy.gif",
+    "https://media2.giphy.com/media/QAB3dfWbviuR0iIC1T/giphy.gif",
+    "https://media.giphy.com/media/paThDtNido1kiskB5E/giphy.gif"
+]
+
+LOADING_MESSAGES = [
+    "Cooking up something special... 👨‍🍳",
+    "Adding some magic ingredients... ✨",
+    "Stirring the creative pot... 🪄",
+    "Preparing your website... 🌐",
+    "Almost ready to serve... 🍽️",
+    "Making it pixel-perfect... 🎨",
+    "Adding the secret sauce... 🥫",
+    "Mixing the perfect blend... 🎯",
+    "Just a few more touches... ⚡",
+    "Creating something delicious... 🍪"
+]
 
 # Load environment variables
 load_dotenv()
@@ -327,6 +354,12 @@ def main():
             render_website_preview()
 
     # Submission handler
+    # In app.py, replace the submission handler section with this code:
+
+        # Submission handler
+    # Replace the submission handler portion with this:
+
+    # Submission handler
     if st.session_state.submitted:
         user_input = st.session_state.user_input
         image_query = st.session_state.get("image_query")
@@ -347,61 +380,136 @@ def main():
 
         st.session_state.messages.append({"role": "user", "content": user_input})
 
-        with st.spinner("Something good is cooking..."):
-            history = get_conversation_history_for_llm()
-            system_prompt = get_system_prompt(image_data)
-            response = generate_response(user_input, history, system_prompt,model_choice)
-            html_code, css_code, js_code = extract_code_from_response(response)
-
-            # Create user guide message
-            guide_message = """
-🎉 **Website Generated Successfully!**
-
-📱 To see your website:
-1. Click the "Website Preview" tab above
-2. Use the preview panel to interact with your site
-3. Check the HTML, CSS, and JS tabs for the code
-
-💡 You can:
-- Continue chatting to refine the website
-- Use version history to track changes
-- Download your website using the buttons below the preview
-
-🔄 Want to make changes?
-- Simply describe what you'd like to modify
-- Reference previous versions if needed
-- Add images by using the image search feature
-"""
+        # Store timestamp of last animation update in session state
+        if "last_animation_update" not in st.session_state:
+            st.session_state.last_animation_update = time.time()
+            st.session_state.current_gif = random.choice(LOADING_GIFS)
+            st.session_state.current_message = random.choice(LOADING_MESSAGES)
+        
+        # Initialize the loading placeholder
+        loading_placeholder = st.empty()
+        
+        # Show initial loading animation
+        loading_placeholder.markdown(f"""
+        <div style="display: flex; flex-direction: column; align-items: center; margin: 20px 0;">
+            <img src="{st.session_state.current_gif}" 
+                alt="Loading animation" 
+                width="300" 
+                style="border-radius: 15px; 
+                        box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+                        margin-bottom: 15px;">
+            <p style="font-size: 20px; 
+                    font-weight: 500; 
+                    color: #4b6cb7; 
+                    text-align: center;
+                    margin: 10px 0;">
+                {st.session_state.current_message}
+            </p>
+        </div>
+        """, unsafe_allow_html=True)
+        
+        # Generate the response
+        history = get_conversation_history_for_llm()
+        system_prompt = get_system_prompt(image_data)
+        
+        # Generate the response with a timeout mechanism
+        response = None
+        timeout = 300  # 5-minute timeout
+        start_time = time.time()
+        
+        while time.time() - start_time < timeout:
+            # Check if we need to update the animation
+            current_time = time.time()
+            if current_time - st.session_state.last_animation_update > 10:  # 10 seconds interval
+                st.session_state.current_gif = random.choice(LOADING_GIFS)
+                st.session_state.current_message = random.choice(LOADING_MESSAGES)
+                st.session_state.last_animation_update = current_time
+                
+                # Force a rerun to update the UI
+                st.rerun()
             
-            # Add both LLM response and guide to chat
-            st.session_state.messages.append({
-                "role": "assistant", 
-                "content": f"{response}\n\n{guide_message}"
-            })
+            try:
+                # Try to generate a response
+                response = generate_response(user_input, history, system_prompt, model_choice)
+                if response:
+                    break
+                
+                # Small sleep to prevent CPU hogging
+                time.sleep(0.5)
+            except Exception as e:
+                st.error(f"Error generating response: {str(e)}")
+                break
+        
+        # Check if the response was generated successfully
+        if not response:
+            loading_placeholder.empty()
+            st.error("❌ Website generation timed out or failed. Please try again.")
+            st.session_state.submitted = False
+            return
+        
+        # Clear the loading animation
+        loading_placeholder.empty()
+        
+        # Reset animation-related session state
+        if "last_animation_update" in st.session_state:
+            del st.session_state.last_animation_update
+        if "current_gif" in st.session_state:
+            del st.session_state.current_gif
+        if "current_message" in st.session_state:
+            del st.session_state.current_message
+        
+        # Extract code from response
+        html_code, css_code, js_code = extract_code_from_response(response)
+        
+        # Create user guide message
+        guide_message = """
+    🎉 **Website Generated Successfully!**
 
-            if html_code or css_code or js_code:
-                base_html = base_css = base_js = ""
-                if st.session_state.current_version_index >= 0:
-                    current = st.session_state.website_versions[st.session_state.current_version_index]
-                    base_html, base_css, base_js = current.html, current.css, current.js
+    📱 To see your website:
+    1. Click the "Website Preview" tab above
+    2. Use the preview panel to interact with your site
+    3. Check the HTML, CSS, and JS tabs for the code
 
-                new_version = WebsiteVersion(
-                    html=html_code or base_html,
-                    css=css_code or base_css,
-                    js=js_code or base_js,
-                    description=user_input.split('\n')[0][:50]
-                )
-                st.session_state.website_versions.append(new_version)
+    💡 You can:
+    - Continue chatting to refine the website
+    - Use version history to track changes
+    - Download your website using the buttons below the preview
 
-                # Update current_version_index
-                if st.session_state.current_version_index == -1:
-                    st.session_state.current_version_index = 0
-                else:
-                    st.session_state.current_version_index = len(st.session_state.website_versions) - 1
+    🔄 Want to make changes?
+    - Simply describe what you'd like to modify
+    - Reference previous versions if needed
+    - Add images by using the image search feature
+    """
+        
+        # Add both LLM response and guide to chat
+        st.session_state.messages.append({
+            "role": "assistant", 
+            "content": f"{response}\n\n{guide_message}"
+        })
+
+        if html_code or css_code or js_code:
+            base_html = base_css = base_js = ""
+            if st.session_state.current_version_index >= 0:
+                current = st.session_state.website_versions[st.session_state.current_version_index]
+                base_html, base_css, base_js = current.html, current.css, current.js
+
+            new_version = WebsiteVersion(
+                html=html_code or base_html,
+                css=css_code or base_css,
+                js=js_code or base_js,
+                description=user_input.split('\n')[0][:50]
+            )
+            st.session_state.website_versions.append(new_version)
+
+            # Update current_version_index
+            if st.session_state.current_version_index == -1:
+                st.session_state.current_version_index = 0
+            else:
+                st.session_state.current_version_index = len(st.session_state.website_versions) - 1
 
         st.session_state.submitted = False
         st.rerun()
-
+        
     # Footer
     st.markdown("---")
     st.markdown("""
