@@ -99,16 +99,22 @@ def load_custom_css():
             border-radius: 15px 15px 5px 15px;
         }
 
-        /* Fixed scrollable containers - Add !important to ensure priority */
+        /* FIXED SCROLLABLE CONTAINERS - Stronger specificity and !important flags */
         .scrollable-container {
             max-height: 400px !important;
             overflow-y: auto !important;
             overflow-x: hidden !important;
-            border: 1px solid rgba(49, 51, 63, 0.1);
-            border-radius: 4px;
-            padding: 10px;
-            margin-bottom: 15px;
+            border: 1px solid rgba(49, 51, 63, 0.1) !important;
+            border-radius: 4px !important;
+            padding: 10px !important;
+            margin-bottom: 15px !important;
             display: block !important;
+        }
+        
+        /* Force Streamlit elements to respect overflow */
+        [data-testid="stVerticalBlock"] .scrollable-container {
+            max-height: 400px !important;
+            overflow-y: auto !important;
         }
         
         /* Ensure code containers have proper scroll */
@@ -130,43 +136,55 @@ def load_custom_css():
             overflow-y: auto !important;
         }
 
-        /* Webkit scrollbar styling */
-        .scrollable-container::-webkit-scrollbar,
-        .scrollable-code-container::-webkit-scrollbar,
-        .stCodeBlock::-webkit-scrollbar,
-        div[data-testid="stCodeBlock"] pre::-webkit-scrollbar {
-            width: 8px;
-            height: 8px;
-            background: transparent;
+        /* Apply scrollbars to all tab content */
+        .stTabs [data-baseweb="tab-panel"] {
+            max-height: 500px !important;
+            overflow-y: auto !important;
         }
 
-        .scrollable-container::-webkit-scrollbar-track,
-        .scrollable-code-container::-webkit-scrollbar-track,
-        .stCodeBlock::-webkit-scrollbar-track,
-        div[data-testid="stCodeBlock"] pre::-webkit-scrollbar-track {
-            background: #f1f1f1;
-            border-radius: 10px;
+        /* Tabs with overflow-y content should scroll */
+        .stTabs [role="tabpanel"] > div {
+            overflow-y: auto !important;
+            max-height: 450px !important;
         }
 
-        .scrollable-container::-webkit-scrollbar-thumb,
-        .scrollable-code-container::-webkit-scrollbar-thumb,
-        .stCodeBlock::-webkit-scrollbar-thumb,
-        div[data-testid="stCodeBlock"] pre::-webkit-scrollbar-thumb {
-            background: #c1c1c1;
-            border-radius: 10px;
+        /* Chat section specific scrollbar fix */
+        [data-testid="stVerticalBlock"] > div:has(.chat-message) {
+            max-height: 400px !important;
+            overflow-y: auto !important;
+            padding-right: 5px !important;
         }
 
-        .scrollable-container::-webkit-scrollbar-thumb:hover,
-        .scrollable-code-container::-webkit-scrollbar-thumb:hover,
-        .stCodeBlock::-webkit-scrollbar-thumb:hover,
-        div[data-testid="stCodeBlock"] pre::-webkit-scrollbar-thumb:hover {
-            background: #a8a8a8;
+        /* Webkit scrollbar styling - make more specific */
+        *::-webkit-scrollbar {
+            width: 10px !important;
+            height: 10px !important;
+            background: transparent !important;
+        }
+
+        *::-webkit-scrollbar-track {
+            background: #f1f1f1 !important;
+            border-radius: 10px !important;
+        }
+
+        *::-webkit-scrollbar-thumb {
+            background: #c1c1c1 !important;
+            border-radius: 10px !important;
+        }
+
+        *::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8 !important;
         }
 
         /* Firefox scrollbar styling */
         * {
-            scrollbar-width: thin;
-            scrollbar-color: #c1c1c1 #f1f1f1;
+            scrollbar-width: thin !important;
+            scrollbar-color: #c1c1c1 #f1f1f1 !important;
+        }
+
+        /* Override Streamlit's overflow handling */
+        div[data-testid="stVerticalBlock"] {
+            overflow: visible !important;
         }
 
         /* Code display styles */
@@ -223,13 +241,37 @@ def load_custom_css():
         .download-buttons > div {
             flex: 1;
         }
-
-        /* Override Streamlit's default overflow handling */
-        .stMarkdown {
-            overflow: visible !important;
-        }
     </style>
     """, unsafe_allow_html=True)
+    
+def create_custom_header():
+    """Create a custom header with title and description"""
+    st.markdown("""
+    <div class="custom-header">
+        <h1>🌐 GHATA-AI Website Generator</h1>
+        <p>Describe your website idea and watch it come to life instantly</p>
+    </div>
+    """, unsafe_allow_html=True)
+
+def format_chat_message(message, role):
+    """Format a chat message with custom styling"""
+    return f"""
+    <div class="chat-message {role}">
+        <strong>{"You" if role == "user" else "AI"}:</strong><br>
+        {message}
+    </div>
+    """
+
+def create_version_card(version, index, is_active=False):
+    """Create a styled version card element"""
+    active_class = "active" if is_active else ""
+    return f"""
+    <div class="version-card {active_class}">
+        <strong>V{index+1}: {version.description[:20]}{'...' if len(version.description) > 20 else ''}</strong>
+        <div style="font-size: 0.8em; color: #666;">{version.timestamp}</div>
+        <div style="font-size: 0.8em; color: #888;">ID: {version.id}</div>
+    </div>
+    """
     
 def create_custom_header():
     """Create a custom header with title and description"""
