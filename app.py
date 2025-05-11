@@ -142,14 +142,20 @@ def render_version_history():
 
 def render_chat_interface():
     """Display chat history with proper scrolling."""
-    # Important: Use CSS class to force vertical scrolling
-    st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
+    # Use stronger CSS-forced scrolling container
+    st.markdown('''
+    <div class="scrollable-container" style="max-height: 400px !important; overflow-y: auto !important; 
+    border: 1px solid #ddd !important; border-radius: 5px !important; padding: 10px !important; 
+    margin-bottom: 15px !important;">
+    ''', unsafe_allow_html=True)
+    
     for message in st.session_state.messages:
         role = "user" if message["role"] == "user" else "assistant"
         content = message["content"]
         if role == "assistant":
             content = clean_response_for_display(content)
         st.markdown(format_chat_message(content, role), unsafe_allow_html=True)
+    
     st.markdown('</div>', unsafe_allow_html=True)
 
 def render_website_preview():
