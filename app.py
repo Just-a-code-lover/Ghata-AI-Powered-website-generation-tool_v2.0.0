@@ -79,72 +79,11 @@ def get_conversation_history_for_llm():
     
     return history
 
-def render_version_history():
-    """Render the version history with proper error handling and reset button."""
-    st.markdown("<h3>Version History</h3>", unsafe_allow_html=True)
-
-    # Initialize the toggle state in session state if not already set
-    if "show_history" not in st.session_state:
-        st.session_state.show_history = True
-
-    # Toggle button to show/hide version history
-    toggle_text = "Hide Version History" if st.session_state.show_history else "Show Version History"
-    if st.button(toggle_text):
-        # Flip the state of show_history
-        st.session_state.show_history = not st.session_state.show_history
-
-    # Reset app state button
-    if st.button("🧹 Reset All Versions & Chat"):
-        clear_session_state()
-        st.rerun()
-
-    # If version history is hidden, return early
-    if not st.session_state.show_history:
-        return
-
-    # Render version history if available
-    if st.session_state.website_versions:
-        # Important: Using HTML instead of container for better scroll control
-        st.markdown('<div class="scrollable-container">', unsafe_allow_html=True)
-        try:
-            for i, version in enumerate(st.session_state.website_versions):
-                if not isinstance(version, WebsiteVersion):
-                    st.warning(f"Skipping corrupted version at index {i}")
-                    continue
-
-                is_active = i == st.session_state.current_version_index
-                st.markdown(create_version_card(version, i, is_active), unsafe_allow_html=True)
-
-                # Avoid nested columns - use side-by-side buttons with HTML/CSS instead
-                col1, col2 = st.columns(2)
-                with col1:
-                    load_btn = st.button("Load", key=f"load_{version.id}")
-                with col2:
-                    download_zip = create_download_zip(version)
-                    st.download_button(
-                        label="Download",
-                        data=download_zip,
-                        file_name=f"website_v{i+1}_{version.id}.zip",
-                        mime="application/zip",
-                        key=f"download_{version.id}"
-                    )
-
-                if load_btn:
-                    st.session_state.current_version_index = i
-                    st.rerun()
-
-                st.markdown("<hr style='margin: 10px 0; opacity: 0.3'>", unsafe_allow_html=True)
-        except Exception as e:
-            st.error(f"❌ Error rendering versions: {str(e)}")
-        st.markdown('</div>', unsafe_allow_html=True)
-    else:
-        st.info("No versions available yet. Start by describing your website!")
-
 def render_chat_interface():
     """Display chat history with proper scrolling."""
-    # Use stronger CSS-forced scrolling container
+    # Use stronger CSS-forced scrolling container with increased height
     st.markdown('''
-    <div class="scrollable-container" style="max-height: 400px !important; overflow-y: auto !important; 
+    <div class="scrollable-container" style="max-height: 60vh !important; overflow-y: auto !important; 
     border: 1px solid #ddd !important; border-radius: 5px !important; padding: 10px !important; 
     margin-bottom: 15px !important;">
     ''', unsafe_allow_html=True)
@@ -170,7 +109,7 @@ def render_website_preview():
         st.info("Describe your website to see a preview here.")
         return
 
-    # Independent scrollable sections
+    # Independent scrollable sections with increased height
     tab1, tab2, tab3, tab4 = st.tabs(["Preview", "HTML", "CSS", "JavaScript"])
 
     with tab1:
@@ -188,10 +127,10 @@ def render_website_preview():
         </body>
         </html>
         """
-        st.components.v1.html(combined_code, height=500, scrolling=True)
+        st.components.v1.html(combined_code, height=600, scrolling=True)
 
     with tab2:
-        # Use scrollable-code-container for proper scrolling
+        # Use scrollable-code-container for proper scrolling with more height
         st.markdown('<div class="scrollable-code-container">', unsafe_allow_html=True)
         st.code(current_version.html, language="html")
         st.markdown('</div>', unsafe_allow_html=True)
@@ -206,10 +145,10 @@ def render_website_preview():
         st.code(current_version.js, language="javascript")
         st.markdown('</div>', unsafe_allow_html=True)
 
-    # Simplified download section - avoid nesting issues
+    # Simplified download section with better styling
     st.markdown("### Download Options")
     
-    # Create simple buttons without nesting columns
+    # Create simple buttons with improved layout
     col1, col2 = st.columns(2)
     
     with col1:
@@ -218,7 +157,8 @@ def render_website_preview():
             data=create_download_zip(current_version),
             file_name=f"website_v{st.session_state.current_version_index+1}_{current_version.id}.zip",
             mime="application/zip",
-            key="download_current"
+            key="download_current",
+            use_container_width=True  # Make button fill container for better UI
         )
     
     # Second button (shown conditionally)
@@ -249,9 +189,71 @@ def render_website_preview():
                 data=all_versions_zip.getvalue(),
                 file_name="all_website_versions.zip",
                 mime="application/zip",
-                key="download_all"
+                key="download_all",
+                use_container_width=True  # Make button fill container for better UI
             )
-            #download_container.markdown("</div>", unsafe_allow_html=True)
+
+def render_version_history():
+    """Render the version history with proper error handling and reset button."""
+    st.markdown("<h3>Version History</h3>", unsafe_allow_html=True)
+
+    # Initialize the toggle state in session state if not already set
+    if "show_history" not in st.session_state:
+        st.session_state.show_history = True
+
+    # Toggle button to show/hide version history
+    toggle_text = "Hide Version History" if st.session_state.show_history else "Show Version History"
+    if st.button(toggle_text, use_container_width=True):
+        # Flip the state of show_history
+        st.session_state.show_history = not st.session_state.show_history
+
+    # Reset app state button
+    if st.button("🧹 Reset All Versions & Chat", use_container_width=True):
+        clear_session_state()
+        st.rerun()
+
+    # If version history is hidden, return early
+    if not st.session_state.show_history:
+        return
+
+    # Render version history if available with increased height
+    if st.session_state.website_versions:
+        # Important: Using HTML instead of container for better scroll control
+        st.markdown('<div class="scrollable-container" style="max-height: 60vh !important;">', unsafe_allow_html=True)
+        try:
+            for i, version in enumerate(st.session_state.website_versions):
+                if not isinstance(version, WebsiteVersion):
+                    st.warning(f"Skipping corrupted version at index {i}")
+                    continue
+
+                is_active = i == st.session_state.current_version_index
+                st.markdown(create_version_card(version, i, is_active), unsafe_allow_html=True)
+
+                # Avoid nested columns - use side-by-side buttons with HTML/CSS instead
+                col1, col2 = st.columns(2)
+                with col1:
+                    load_btn = st.button("Load", key=f"load_{version.id}", use_container_width=True)
+                with col2:
+                    download_zip = create_download_zip(version)
+                    st.download_button(
+                        label="Download",
+                        data=download_zip,
+                        file_name=f"website_v{i+1}_{version.id}.zip",
+                        mime="application/zip",
+                        key=f"download_{version.id}",
+                        use_container_width=True
+                    )
+
+                if load_btn:
+                    st.session_state.current_version_index = i
+                    st.rerun()
+
+                st.markdown("<hr style='margin: 10px 0; opacity: 0.3'>", unsafe_allow_html=True)
+        except Exception as e:
+            st.error(f"❌ Error rendering versions: {str(e)}")
+        st.markdown('</div>', unsafe_allow_html=True)
+    else:
+        st.info("No versions available yet. Start by describing your website!")
 
 
 def main():
@@ -269,8 +271,8 @@ def main():
     load_custom_css()
     create_custom_header()
 
-    # Main layout structure - avoid nested columns
-    left_panel, right_panel = st.columns([1, 3])
+    col_ratio = [1, 3]  # Adjust ratio for better space usage
+    left_panel, right_panel = st.columns(col_ratio)
     
     # Left column - Version history
     with left_panel:
@@ -290,7 +292,7 @@ def main():
                 user_input = st.text_area(
                     "What would you like to create or modify?",
                     height=100,
-                    placeholder="e.g., 'Create a landing page for a bakery with contact form'"
+                    placeholder="e.g., 'Create a landing page for a bakery with contact form in Hindi'"
                 )
                 
                 # Image search section
@@ -358,12 +360,6 @@ def main():
         with preview_tab:
             # Preview section
             render_website_preview()
-
-    # Submission handler
-    # In app.py, replace the submission handler section with this code:
-
-        # Submission handler
-    # Replace the submission handler portion with this:
 
     # Submission handler
     if st.session_state.submitted:
@@ -517,9 +513,8 @@ def main():
         st.rerun()
         
     # Footer
-    st.markdown("---")
     st.markdown("""
-    <div style='text-align: center; color: #666; padding: 10px;'>
+    <div class="footer">
         <p>Built with Streamlit and NIM 🚀</p>
         <p style='font-size: 0.8rem;'>© 2025 Ghata AI Website Generator</p>
     </div>
