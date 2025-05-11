@@ -18,7 +18,7 @@ LOADING_GIFS = [
     "https://media0.giphy.com/media/XfDiixCqdH7OrEBg5z/giphy.gif",
     "https://media1.giphy.com/media/HjyfGGLxtaPbhrJWEg/giphy.gif",
     "https://media0.giphy.com/media/xCej66aMjFBgqgWtQV/giphy.gif",
-    "https://media3.giphy.com/media/Uduu3VO7a3PJQlD5Bm/giphy.gif",
+    "https://media.giphy.com/media/tHIRLHtNwxpjIFqPdV/giphy.gif",
     "https://media4.giphy.com/media/vHslzlGM9vKUgFNx0y/giphy.gif",
     "https://media3.giphy.com/media/5tiNlHkA1WdUh3jRDW/giphy.gif",
     "https://media4.giphy.com/media/axsN0Wx9AjwOJBvBLu/giphy.gif",
