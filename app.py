@@ -308,7 +308,7 @@ def main():
                         "Number of images",
                         min_value=1,
                         max_value=10,
-                        value=5,
+                        value=7,
                         key="num_images_input"
                     )             
         
