@@ -464,23 +464,27 @@ def main():
         html_code, css_code, js_code = extract_code_from_response(response)
         
         # Create user guide message
-        guide_message = """
-    🎉 **Website Generated Successfully!**
+        guide_message ="""
+    \n***🎉 Website Generated Successfully!***
 
-    📱 To see your website:
-    1. Click the "Website Preview" tab above
-    2. Use the preview panel to interact with your site
-    3. Check the HTML, CSS, and JS tabs for the code
+    
+    \n📱 To see your website:
 
-    💡 You can:
+    - Click the "Website Preview" tab above
+    - Use the preview panel to interact with your site
+    - Check the HTML, CSS, and JS tabs for the code
+
+    \n💡 You can:
+
     - Continue chatting to refine the website
     - Use version history to track changes
     - Download your website using the buttons below the preview
 
-    🔄 Want to make changes?
+    \n🔄 Want to make changes?
+
     - Simply describe what you'd like to modify
     - Reference previous versions if needed
-    - Add images by using the image search feature
+    - Add images by using the image search feature\n
     """
         
         # Add both LLM response and guide to chat
