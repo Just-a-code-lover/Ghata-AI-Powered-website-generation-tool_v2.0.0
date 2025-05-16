@@ -339,6 +339,10 @@ def format_chat_message(message, role):
     while "```" in formatted_message:
         formatted_message = formatted_message.replace("```", "</code></pre>", 1)
     
+    # Add specific styling for "code removed for clarity" notices
+    formatted_message = formatted_message.replace("[Code block removed for clarity]", 
+                                               "<div class='code-removed-notice'>[Code block removed for clarity]</div>")
+    
     # Format markdown list elements properly
     message_lines = []
     for line in formatted_message.split('\n'):
