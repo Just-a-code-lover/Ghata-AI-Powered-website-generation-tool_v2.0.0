@@ -130,6 +130,18 @@ def load_custom_css():
             padding: 2px 4px;
             border-radius: 3px;
         }
+        
+        /* Style for "code removed for clarity" notices */
+        .code-removed-notice {
+            color: #2e7d32;  /* Green color */
+            font-style: italic;
+            background-color: #f8f9fa;
+            padding: 8px 12px;
+            border-left: 3px solid #2e7d32;
+            margin: 10px 0;
+            border-radius: 0 4px 4px 0;
+            font-family: 'Consolas', 'Monaco', monospace;
+        }
 
         /* FIXED SCROLLABLE CONTAINERS - Stronger specificity and !important flags */
         .scrollable-container {
