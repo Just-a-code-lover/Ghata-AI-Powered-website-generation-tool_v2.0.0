@@ -465,27 +465,28 @@ def main():
         
         # Create user guide message
         guide_message ="""
-    \n***🎉 Website Generated Successfully!***
 
-    
-    \n📱 To see your website:
+***🎉 Website Generated Successfully!***
 
-    - Click the "Website Preview" tab above
-    - Use the preview panel to interact with your site
-    - Check the HTML, CSS, and JS tabs for the code
+<strong>📱 To see your website:</strong>
 
-    \n💡 You can:
+- Click the "Website Preview" tab above
+- Use the preview panel to interact with your site
+- Check the HTML, CSS, and JS tabs for the code
 
-    - Continue chatting to refine the website
-    - Use version history to track changes
-    - Download your website using the buttons below the preview
+<strong>💡 You can:</strong>
 
-    \n🔄 Want to make changes?
+- Continue chatting to refine the website
+- Use version history to track changes
+- Download your website using the buttons below the preview
 
-    - Simply describe what you'd like to modify
-    - Reference previous versions if needed
-    - Add images by using the image search feature\n
-    """
+<strong>🔄 Want to make changes?</strong>
+
+- Simply describe what you'd like to modify
+- Reference previous versions if needed
+- Add images by using the image search feature
+"""
+
         
         # Add both LLM response and guide to chat
         st.session_state.messages.append({
