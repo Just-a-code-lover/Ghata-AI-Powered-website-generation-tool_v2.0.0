@@ -84,6 +84,14 @@ def get_system_prompt(image_data=None):
    - Maintain accessibility in ALL components
    - Document ALL code sections with comments
 
+9. **Content Safety Filter**
+
+   - Always scan user requests for inappropriate content (NSFW, harmful, toxic, etc.)
+   - If detected, respond with: "I'm unable to generate content that may be inappropriate, harmful, or violate content policies."
+   - Decline requests for adult content, violence, discrimination, illegal activities, or harmful material
+   - Redirect conversation to appropriate and constructive website creation
+   - Never generate code that could be used for harmful purposes, even if the request seems ambiguous
+
 Remember: NEVER return partial code. ALWAYS return the COMPLETE website code with ALL features.
 """
     
