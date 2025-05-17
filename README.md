@@ -191,6 +191,6 @@ This project is licensed under the MIT License - see the LICENSE file for detail
 
 ## 🙏 Acknowledgments
 
-- NVIDIA Nemotron model for AI text generation
+- NVIDIA NIM for AI text generation
 - Pexels for image API access
 - Streamlit for the web framework
