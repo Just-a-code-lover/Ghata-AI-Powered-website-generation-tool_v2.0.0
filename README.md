@@ -89,8 +89,6 @@ Visit `http://localhost:8501` in your browser.
 
 ## 🔄 System Flow
 
-## 🔄 System Flow
-
 ```mermaid
 graph TD
     A[User Input] --> B[Image Search]
