@@ -1,16 +1,94 @@
-# Ghata-AI-Powered-website-generation-tool_v2.5.0 (Latest/Stable)
-My final year project and version 2 of https://github.com/Just-a-code-lover/Ghata-AI-Powered-website-generation-tool_v1.0.0
+# 🌟 Ghata AI Website Generator v2.5.0
+
+> AI-powered website generation tool that creates custom websites from text descriptions in seconds.
+
+![GitHub](https://img.shields.io/badge/version-2.5.0-blue)
+![Python](https://img.shields.io/badge/Python-3.8+-green)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.24+-red)
+
+Enhanced version of [Ghata Website Generator v1.0.0](https://github.com/Just-a-code-lover/Ghata-AI-Powered-website-generation-tool_v1.0.0)
 
 ## 🚀 Live Demo
 
 Try the app here: [https://ghata-ai.streamlit.app](https://ghata-ai.streamlit.app)
 
-# Ghata AI Website Generator - Technical Documentation
+## 📋 Features
 
-## Core Components
+- 💬 **Text-to-Website**: Turn natural language descriptions into fully functional websites
+- 🖼️ **Image Integration**: Automatic image search via Pexels API
+- 🔄 **Version Control**: Save and navigate between different website versions
+- 📦 **Export Options**: Download as ZIP files (single or all versions)
+- 👀 **Live Preview**: Instant preview of generated websites
+
+## 🧠 Architecture Diagram
+
+![Architecture Diagram](https://github.com/Just-a-code-lover/Ghata-AI-Powered-website-generation-tool_v2.0.0/blob/Version_2.5.0/diagram-export-4-24-2025-1_16_22-AM.png?raw=true)
+
+## 🔧 Installation & Setup
+
+### Prerequisites
+
+- Python 3.8+
+- Git
+
+### Clone the Repository
+
+```bash
+git clone https://github.com/Just-a-code-lover/Ghata-AI-Powered-website-generation-tool_v2.0.0.git
+cd Ghata-AI-Powered-website-generation-tool_v2.0.0
+```
+
+### Environment Setup
+
+1. Create and activate a virtual environment:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+```
+
+2. Install dependencies:
+
+```bash
+pip install -r requirements.txt
+```
+
+3. Set up environment variables (create a `.env` file):
+
+```
+NVIDIA_API_KEY=your_nvidia_api_key
+PEXELS_API_KEY=your_pexels_api_key
+```
+
+### Running Locally
+
+Start the Streamlit app:
+
+```bash
+streamlit run app.py
+```
+
+Visit `http://localhost:8501` in your browser.
+
+## 🚢 Deployment to Streamlit Cloud
+
+1. Fork this repository to your GitHub account
+
+2. Log in to [Streamlit Cloud](https://streamlit.io/cloud)
+
+3. Click "New app" and select the forked repository
+
+4. Configure the app:
+   - Set the main file path to `app.py`
+   - Add the required secrets (NVIDIA_API_KEY and PEXELS_API_KEY) in the "Secrets" section
+   - Choose the Python version (3.8+)
+
+5. Click "Deploy" and wait for the build to complete
+
+## 🏗️ Core Components
 
 ### 1. AI Website Generation Engine
-- **Key File**: llm_handler.py
+- **Key File**: `llm_handler.py`
 - **Main Functions**:
   - `generate_response()` - Handles API communication with NVIDIA's Nemotron model
   - `get_system_prompt()` - Manages the system prompt with detailed instructions
@@ -18,8 +96,8 @@ Try the app here: [https://ghata-ai.streamlit.app](https://ghata-ai.streamlit.ap
 
 ### 2. Version Control System
 - **Key Files**: 
-  - website_version.py - Version data structure
-  - app_utilities.py - State management
+  - `website_version.py` - Version data structure
+  - `app_utilities.py` - State management
 - **Features**:
   - Unique ID generation for each version
   - Timestamp tracking
@@ -27,7 +105,7 @@ Try the app here: [https://ghata-ai.streamlit.app](https://ghata-ai.streamlit.ap
   - State persistence between sessions
 
 ### 3. UI Components
-- **Key File**: ui_components.py
+- **Key File**: `ui_components.py`
 - **Major Components**:
   - Custom header and styling
   - Chat interface
@@ -36,7 +114,7 @@ Try the app here: [https://ghata-ai.streamlit.app](https://ghata-ai.streamlit.ap
   - Download buttons
 
 ### 4. Image Integration
-- **Key File**: image_handler.py
+- **Key File**: `image_handler.py`
 - **Main Function**: `get_images_from_pexels()`
 - **Features**:
   - Pexels API integration
@@ -44,20 +122,30 @@ Try the app here: [https://ghata-ai.streamlit.app](https://ghata-ai.streamlit.ap
   - Dynamic image search
 
 ### 5. File Management
-- **Key File**: file_handler.py
+- **Key File**: `file_handler.py`
 - **Main Functions**:
   - `create_download_zip()` - Single version export
   - `create_all_versions_zip()` - Multiple version export
   - File structure organization
 
-  ## 🧠 Architecture Diagram
+## 📁 Project Structure
 
-![Architecture Diagram](https://github.com/Just-a-code-lover/Ghata-AI-Powered-website-generation-tool_v2.0.0/blob/Version_2.5.0/diagram-export-4-24-2025-1_16_22-AM.png?raw=true)
+```
+project/
+├── app.py              # Main application
+├── llm_handler.py      # AI model integration
+├── image_handler.py    # Pexels API integration
+├── website_version.py  # Version management
+├── file_handler.py     # File operations
+├── ui_components.py    # UI elements
+├── app_utilities.py    # Utilities and state management
+├── requirements.txt    # Project dependencies
+└── .env                # Environment variables (create this)
+```
 
+## 💻 Technical Implementation
 
-## Key Features & Implementation
-
-### 1. Website Generation Process
+### Website Generation Process
 ```python
 # In app.py
 def main():
@@ -79,7 +167,7 @@ def main():
         html_code, css_code, js_code = extract_code_from_response(response)
 ```
 
-### 2. Version Management
+### Version Management
 ```python
 # In website_version.py
 class WebsiteVersion:
@@ -89,220 +177,20 @@ class WebsiteVersion:
         # ... store code and description
 ```
 
-### 3. UI Layout
-```python
-# In app.py
-def render_website_preview():
-    tab1, tab2, tab3, tab4 = st.tabs(["Preview", "HTML", "CSS", "JavaScript"])
-    # Each tab shows different aspects of the generated website
-```
+## 🤝 Contributing
 
-### 4. State Management
-```python
-# In app_utilities.py
-def initialize_session_state():
-    # Initialize all required session variables
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    if "website_versions" not in st.session_state:
-        st.session_state.website_versions = []
-```
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Commit your changes: `git commit -m 'Add some feature'`
+4. Push to the branch: `git push origin feature-name`
+5. Open a pull request
 
-## Technical Features
+## 📄 License
 
-1. **Stateless Architecture with State Management**
-   - Uses Streamlit's session state
-   - Maintains conversation history
-   - Preserves version history
+This project is licensed under the MIT License - see the LICENSE file for details.
 
-2. **Modular Design**
-   - Separated concerns (UI, LLM, file handling)
-   - Easy to extend or modify components
-   - Clean code organization
+## 🙏 Acknowledgments
 
-3. **Error Handling & Safety**
-   - API error handling
-   - Input validation
-   - Safe file operations
-
-4. **User Experience**
-   - Live preview
-   - Code highlighting
-   - Responsive design
-   - Interactive version management
-
-## File Structure
-```
-project/
-├── app.py              # Main application
-├── llm_handler.py      # AI model integration
-├── image_handler.py    # Pexels API integration
-├── website_version.py  # Version management
-├── file_handler.py     # File operations
-├── ui_components.py    # UI elements
-└── app_utilities.py    # Utilities and state management
-```
-
-# Ghata AI Website Generator - System Architecture
-
-## 1. Core Components & Data Flow
-
-### 1.1 Frontend Layer (Streamlit UI)
-- **Main Layout** (`app.py`, Lines 318-332):
-```python
-def main():
-    st.set_page_config(layout="wide")
-    initialize_session_state()
-    load_custom_css()
-    create_custom_header()
-    
-    # Two-panel layout
-    left_panel, right_panel = st.columns([1, 3])
-```
-
-### 1.2 State Management
-- **Session State** (`app_utilities.py`, Lines 5-23):
-```python
-def initialize_session_state():
-    if "messages" not in st.session_state:
-        st.session_state.messages = []
-    if "website_versions" not in st.session_state:
-        st.session_state.website_versions = []
-    if "current_version_index" not in st.session_state:
-        st.session_state.current_version_index = -1
-```
-
-## 2. Key System Workflows
-
-### 2.1 Website Generation Pipeline
-1. **User Input Processing** (`app.py`, Lines 330-384):
-   ```python
-   # 1. Collect user input
-   user_input = st.text_area(...)
-   image_query = st.text_input(...)
-   
-   # 2. Process image requests
-   if image_query:
-       image_data = get_images_from_pexels(image_query, num_images)
-   
-   # 3. Generate website
-   response = generate_response(user_input, history, system_prompt)
-   html_code, css_code, js_code = extract_code_from_response(response)
-   ```
-
-2. **Version Management** (`website_version.py`, Lines 4-15):
-   ```python
-   class WebsiteVersion:
-       def __init__(self, html="", css="", js="", description=""):
-           self.id = str(uuid.uuid4())[:8]
-           self.timestamp = datetime.datetime.now()
-           self.html = html
-           self.css = css
-           self.js = js
-   ```
-
-### 2.2 AI Integration
-- **LLM Handler** (`llm_handler.py`, Lines 144-182):
-```python
-def generate_response(prompt, conversation_history=None, custom_system_prompt=None):
-    client = OpenAI(
-        base_url="https://integrate.api.nvidia.com/v1",
-        api_key=os.environ.get("NVIDIA_API_KEY")
-    )
-    messages = [{"role": "system", "content": system_prompt}]
-    # ... handling conversation and response
-```
-
-### 2.3 Image Integration
-- **Pexels API Handler** (`image_handler.py`, Lines 4-31):
-```python
-def get_images_from_pexels(query: str, per_page: int = 5) -> List[Dict]:
-    api_key = os.getenv("PEXELS_API_KEY")
-    headers = {"Authorization": api_key}
-    # ... API request and response processing
-```
-
-## 3. Data Persistence & Export
-
-### 3.1 File Management
-- **ZIP Export** (`file_handler.py`, Lines 6-45):
-```python
-def create_download_zip(version):
-    with zipfile.ZipFile(zip_buffer, "w") as zipf:
-        zipf.writestr("index.html", ...)
-        zipf.writestr("styles.css", version.css)
-        zipf.writestr("script.js", version.js)
-```
-
-### 3.2 State Persistence
-```python
-def save_state_to_file(filename="website_state.json"):
-    data = {
-        "messages": st.session_state.messages,
-        "website_versions": [v.to_dict() for v in st.session_state.website_versions],
-        "current_version_index": st.session_state.current_version_index
-    }
-```
-
-## 4. UI Components
-
-### 4.1 Custom Styling
-- **CSS Management** (`ui_components.py`, Lines 1-180):
-```python
-def load_custom_css():
-    st.markdown("""
-        <style>
-        .scrollable-container {
-            max-height: 500px !important;
-            overflow: auto !important;
-        }
-        /* ... other styles */
-        </style>
-    """)
-```
-
-### 4.2 Preview System
-- **Website Preview** (`app.py`, Lines 150-190):
-```python
-def render_website_preview():
-    tab1, tab2, tab3, tab4 = st.tabs(["Preview", "HTML", "CSS", "JavaScript"])
-    # ... rendering logic for each tab
-```
-
-## 5. System Flow Diagram
-```mermaid
-graph TD
-    A[User Input] --> B[Image Search]
-    A --> C[Website Generation]
-    B --> D[Pexels API]
-    D --> C
-    C --> E[LLM/Nemotron]
-    E --> F[Code Generation]
-    F --> G[Version Management]
-    G --> H[Preview System]
-    G --> I[Export System]
-```
-
-## 6. Key Features
-
-### 6.1 Stateless Architecture
-- Maintains conversation context through session state
-- Preserves version history
-- Handles image metadata
-
-### 6.2 Error Handling
-- API fallbacks
-- Input validation
-- State management safety checks
-
-### 6.3 Modular Design
-- Separated concerns (UI, LLM, file handling)
-- Easy to extend
-- Clean component isolation
-
-This architecture provides a robust foundation for:
-- Scalable website generation
-- Version control
-- Image integration
-- Code preview and export
-- User interaction management
+- NVIDIA Nemotron model for AI text generation
+- Pexels for image API access
+- Streamlit for the web framework
