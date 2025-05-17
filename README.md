@@ -191,6 +191,34 @@ class WebsiteVersion:
         self.timestamp = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
         # ... store code and description
 ```
+## 🔄 Version Control
+
+```mermaid
+graph TD
+    A[User Input] --> B[Image Search]
+    A --> C[Website Generation]
+    B --> D[Pexels API]
+    D --Images--> C
+    C --> E[LLM/Nemotron]
+    E --Response--> F[Code Generation]
+    F --> G[Version Management]
+    
+    G --> H[Preview System]
+    G --> I[Export System]
+    
+    %% Version history and iteration flow
+    G --> J[Version History]
+    J --Select Version--> K[Load Previous Version]
+    K --> L[Edit/Iterate]
+    L --> A
+    
+    %% Feedback loop
+    H --User Feedback--> A
+    
+    %% Version branching
+    K --> M[Branch New Version]
+    M --> A
+```
 
 ## 🤝 Contributing
 
