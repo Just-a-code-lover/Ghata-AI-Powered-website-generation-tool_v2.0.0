@@ -87,6 +87,26 @@ Visit `http://localhost:8501` in your browser.
 
 ## 🏗️ Core Components
 
+## 🔄 System Flow
+
+```mermaid
+graph TD
+    A[User Input] --> B[Image Search]
+    A --> C[Website Generation]
+    B --> D[Pexels API]
+    D --Images--> C
+    C --> E[LLM/Nemotron]
+    E --Response--> F[Code Generation]
+    F --> G[Version Management]
+    G --> H[Preview System]
+    G --> I[Export System]
+    
+    style A fill:#f9d5e5,stroke:#333,stroke-width:2px
+    style E fill:#d3e5ff,stroke:#333,stroke-width:2px
+    style F fill:#d3ffe5,stroke:#333,stroke-width:2px
+    style H fill:#ffffd3,stroke:#333,stroke-width:2px
+    style I fill:#ffffd3,stroke:#333,stroke-width:2px
+
 ### 1. AI Website Generation Engine
 - **Key File**: `llm_handler.py`
 - **Main Functions**:
